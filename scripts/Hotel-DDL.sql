@@ -8,7 +8,7 @@ CREATE TABLE Huesped (
     --! PK: Identificador unico de huesped
     ID_Huesped INT IDENTITY(1,1) NOT NULL,
     Nombre VARCHAR(250) NOT NULL,
-    DUI CHAR(9) NOT NULL,            -- formato 00000000-0 (9 caracteres)
+    DUI CHAR(10) NOT NULL,            -- formato 00000000-0 (10 caracteres)
     Correo VARCHAR(250) NOT NULL,
     Telefono CHAR(8) NOT NULL,
     --* Llave primaria de Huesped
