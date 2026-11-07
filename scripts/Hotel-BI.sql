@@ -177,6 +177,22 @@ WITH EstadiasReservacion AS
         COUNT(ID_Estadia) AS Cantidad_Estadias
     FROM dbo.Estadia
     GROUP BY ID_Reservacion
+),
+HotelReservacion AS
+(
+    SELECT
+        E.ID_Reservacion,
+        RH.ID_Hotel,
+        HOT.Nombre AS Nombre_Hotel
+    FROM dbo.Estadia E
+    INNER JOIN dbo.RegistroHabitaciones RH
+        ON E.ID_Estadia = RH.ID_Estadia
+    INNER JOIN dbo.Hotel HOT
+        ON RH.ID_Hotel = HOT.ID_Hotel
+    GROUP BY
+        E.ID_Reservacion,
+        RH.ID_Hotel,
+        HOT.Nombre
 )
 SELECT
     R.ID_Reservacion,
@@ -211,6 +227,9 @@ SELECT
     ISNULL(ER.Cantidad_Estadias, 0)
         AS Cantidad_Estadias,
 
+    HR.ID_Hotel,
+    HR.Nombre_Hotel,
+
     CASE
         WHEN R.Estado = 'COMPLETADA' THEN 1
         ELSE 0
@@ -232,7 +251,10 @@ INNER JOIN dbo.Huesped H
     ON R.ID_Huesped = H.ID_Huesped
 
 LEFT JOIN EstadiasReservacion ER
-    ON R.ID_Reservacion = ER.ID_Reservacion;
+    ON R.ID_Reservacion = ER.ID_Reservacion
+
+LEFT JOIN HotelReservacion HR
+    ON R.ID_Reservacion = HR.ID_Reservacion;
 GO
 
 -- Pag 4: Habitaciones y Ocupacion
