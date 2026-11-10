@@ -1,4 +1,4 @@
-USE [ProyectoHotelBD];
+USE Hotel;
 GO
 
 --Creacion de esquemas

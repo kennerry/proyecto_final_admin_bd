@@ -1,3 +1,6 @@
+USE Hotel;
+GO
+
 --consulta 1: consultar el ranking de reservaciones por huésped
 SELECT
     ID_Huesped,
@@ -9,12 +12,12 @@ SELECT
         PARTITION BY ID_Huesped
         ORDER BY Fecha_Inicio DESC, ID_Reservacion DESC
     ) AS Numero_Reservacion
-FROM Reservacion;
+FROM Operaciones.Reservacion;
 
 --INDICE PROPUESTO:
 
 CREATE NONCLUSTERED INDEX IX_Reservacion_Huesped_Fecha
-ON Reservacion (
+ON Operaciones.Reservacion (
     ID_Huesped,
     Fecha_Inicio DESC,
     ID_Reservacion DESC
@@ -39,7 +42,7 @@ WITH ServiciosEmpleado AS (
             ORDER BY Fecha_servicio DESC,
                      ID_HistorialServicios DESC
         ) AS NumeroServicio
-    FROM HistorialServicios
+    FROM Operaciones.HistorialServicios
 )
 SELECT
     ID_Empleado,
@@ -53,7 +56,7 @@ WHERE NumeroServicio = 1;
 --INDICE PROPUESTO:
 
 CREATE NONCLUSTERED INDEX IX_HistorialServicios_Empleado_Fecha
-ON HistorialServicios (
+ON Operaciones.HistorialServicios (
     ID_Empleado,
     Fecha_servicio DESC,
     ID_HistorialServicios DESC
@@ -77,13 +80,13 @@ SELECT
         ROWS BETWEEN UNBOUNDED PRECEDING
         AND CURRENT ROW
     ) AS Nomina_Acumulada
-FROM PagoNomina;
+FROM Finanzas.PagoNomina;
 
 
 --INDICE PROPUESTO
 
 CREATE NONCLUSTERED INDEX IX_PagoNomina_Empleado_Fecha
-ON PagoNomina (
+ON Finanzas.PagoNomina (
     ID_Empleado,
     Fecha_Pago,
     ID_Salario
