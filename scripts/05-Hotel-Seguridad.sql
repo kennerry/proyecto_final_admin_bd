@@ -8,6 +8,8 @@ CREATE SCHEMA Finanzas;
 GO
 CREATE SCHEMA Auditoria;
 GO
+CREATE SCHEMA BI;
+GO
 
 --Mover las tablas de dbo a sus nuevos esquemas
 ALTER SCHEMA Operaciones TRANSFER dbo.Hotel;
@@ -23,12 +25,20 @@ ALTER SCHEMA Finanzas TRANSFER dbo.Empleado;
 ALTER SCHEMA Finanzas TRANSFER dbo.PagoNomina;
 ALTER SCHEMA Finanzas TRANSFER dbo.Factura;
 ALTER SCHEMA Finanzas TRANSFER dbo.Detalle;
+
+ALTER SCHEMA BI TRANSFER dbo.v_AnalisisResumenEjecutivo;
+ALTER SCHEMA BI TRANSFER dbo.v_AnalisisFinanciero;
+ALTER SCHEMA BI TRANSFER dbo.v_AnalisisReservaciones;
+ALTER SCHEMA BI TRANSFER dbo.v_AnalisisHabitaciones;
+ALTER SCHEMA BI TRANSFER dbo.v_AnalisisServicios;
+ALTER SCHEMA BI TRANSFER dbo.v_AnalisisRecursosHumanos;
 GO
 
 --Creación de Roles, Permisos y Usuarios
 CREATE ROLE Rol_Recepcionista;
 CREATE ROLE Rol_Contador;
 CREATE ROLE Rol_AdministradorHotel;
+CREATE ROLE Rol_AnalistaBI;
 GO
 
 GRANT SELECT, INSERT, UPDATE ON SCHEMA::Operaciones TO Rol_Recepcionista;
@@ -41,6 +51,8 @@ GRANT SELECT ON SCHEMA::Operaciones TO Rol_Contador;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::Operaciones TO Rol_AdministradorHotel;
 GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::Finanzas TO Rol_AdministradorHotel;
+
+GRANT SELECT ON SCHEMA::BI TO Rol_AnalistaBI;
 GO
 
 CREATE LOGIN usr_recepcion WITH PASSWORD = 'PasswordSeguro123!';
@@ -54,4 +66,8 @@ ALTER ROLE Rol_Contador ADD MEMBER usr_contabilidad;
 CREATE LOGIN usr_gerente WITH PASSWORD = 'PasswordSeguro123!';
 CREATE USER usr_gerente FOR LOGIN usr_gerente;
 ALTER ROLE Rol_AdministradorHotel ADD MEMBER usr_gerente;
+
+CREATE LOGIN usr_analistaBI WITH PASSWORD = 'PasswordSeguro123!';
+CREATE USER usr_analistaBI FOR LOGIN usr_analistaBI;
+ALTER ROLE Rol_AnalistaBI ADD MEMBER usr_analistaBI;
 GO
