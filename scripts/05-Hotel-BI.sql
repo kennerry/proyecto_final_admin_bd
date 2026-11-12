@@ -3,7 +3,7 @@ USE Hotel;
 GO
 
 -- Pag 1: Resumen Ejecutivo
-CREATE VIEW v_AnalisisResumenEjecutivo
+CREATE VIEW BI.v_AnalisisResumenEjecutivo
 AS
 WITH DetallesFactura AS
 (
@@ -11,7 +11,7 @@ WITH DetallesFactura AS
         ID_Factura,
         SUM(Precio_Subtotal) AS Total_Detalles,
         COUNT(ID_Detalle) AS Cantidad_Detalles
-    FROM dbo.Detalle
+    FROM Finanzas.Detalle
     GROUP BY ID_Factura
 ),
 HabitacionesEstadia AS
@@ -19,7 +19,7 @@ HabitacionesEstadia AS
     SELECT
         ID_Estadia,
         COUNT(*) AS Cantidad_Habitaciones
-    FROM dbo.RegistroHabitaciones
+    FROM Operaciones.RegistroHabitaciones
     GROUP BY ID_Estadia
 ),
 ServiciosEstadia AS
@@ -27,7 +27,7 @@ ServiciosEstadia AS
     SELECT
         ID_Estadia,
         COUNT(*) AS Cantidad_Servicios
-    FROM dbo.HistorialServicios
+    FROM Operaciones.HistorialServicios
     GROUP BY ID_Estadia
 )
 SELECT
@@ -62,12 +62,12 @@ SELECT
     ISNULL(SE.Cantidad_Servicios, 0)
         AS Cantidad_Servicios
 
-FROM dbo.Factura F
-INNER JOIN dbo.Estadia E
+FROM Finanzas.Factura F
+INNER JOIN Operaciones.Estadia E
     ON F.ID_Estadia = E.ID_Estadia
-INNER JOIN dbo.Reservacion R
+INNER JOIN Operaciones.Reservacion R
     ON E.ID_Reservacion = R.ID_Reservacion
-INNER JOIN dbo.Huesped H
+INNER JOIN Operaciones.Huesped H
     ON R.ID_Huesped = H.ID_Huesped
 
 LEFT JOIN DetallesFactura DF
@@ -81,7 +81,7 @@ LEFT JOIN ServiciosEstadia SE
 GO
 
 -- Pag 2: Analisis Financiero
-CREATE VIEW dbo.v_AnalisisFinanciero
+CREATE VIEW BI.v_AnalisisFinanciero
 AS
 SELECT
     D.ID_Detalle,
@@ -130,52 +130,52 @@ SELECT
     COALESCE(HOT_HAB.Nombre, HOT_EMP.Nombre)
         AS Nombre_Hotel
 
-FROM dbo.Detalle D
+FROM Finanzas.Detalle D
 
-INNER JOIN dbo.Factura F
+INNER JOIN Finanzas.Factura F
     ON D.ID_Factura = F.ID_Factura
 
-INNER JOIN dbo.Estadia E
+INNER JOIN Operaciones.Estadia E
     ON F.ID_Estadia = E.ID_Estadia
 
-INNER JOIN dbo.Reservacion R
+INNER JOIN Operaciones.Reservacion R
     ON E.ID_Reservacion = R.ID_Reservacion
 
-INNER JOIN dbo.Huesped H
+INNER JOIN Operaciones.Huesped H
     ON R.ID_Huesped = H.ID_Huesped
 
-LEFT JOIN dbo.RegistroHabitaciones RH
+LEFT JOIN Operaciones.RegistroHabitaciones RH
     ON D.ID_Registro = RH.ID_Registro
 
-LEFT JOIN dbo.Habitacion HAB
+LEFT JOIN Operaciones.Habitacion HAB
     ON RH.Numero = HAB.Numero
    AND RH.ID_Hotel = HAB.ID_Hotel
 
-LEFT JOIN dbo.Hotel HOT_HAB
+LEFT JOIN Operaciones.Hotel HOT_HAB
     ON HAB.ID_Hotel = HOT_HAB.ID_Hotel
 
-LEFT JOIN dbo.HistorialServicios HS
+LEFT JOIN Operaciones.HistorialServicios HS
     ON D.ID_HistorialServicios = HS.ID_HistorialServicios
 
-LEFT JOIN dbo.Servicio S
+LEFT JOIN Operaciones.Servicio S
     ON HS.ID_Servicio = S.ID_Servicio
 
-LEFT JOIN dbo.Empleado EMP
+LEFT JOIN Finanzas.Empleado EMP
     ON HS.ID_Empleado = EMP.ID_Empleado
 
-LEFT JOIN dbo.Hotel HOT_EMP
+LEFT JOIN Operaciones.Hotel HOT_EMP
     ON EMP.ID_Hotel = HOT_EMP.ID_Hotel;
 GO
 
 -- Pag 3: Reservaciones y Estadias
-CREATE VIEW dbo.v_AnalisisReservaciones
+CREATE VIEW BI.v_AnalisisReservaciones
 AS
 WITH EstadiasReservacion AS
 (
     SELECT
         ID_Reservacion,
         COUNT(ID_Estadia) AS Cantidad_Estadias
-    FROM dbo.Estadia
+    FROM Operaciones.Estadia
     GROUP BY ID_Reservacion
 ),
 HotelReservacion AS
@@ -184,10 +184,10 @@ HotelReservacion AS
         E.ID_Reservacion,
         RH.ID_Hotel,
         HOT.Nombre AS Nombre_Hotel
-    FROM dbo.Estadia E
-    INNER JOIN dbo.RegistroHabitaciones RH
+    FROM Operaciones.Estadia E
+    INNER JOIN Operaciones.RegistroHabitaciones RH
         ON E.ID_Estadia = RH.ID_Estadia
-    INNER JOIN dbo.Hotel HOT
+    INNER JOIN Operaciones.Hotel HOT
         ON RH.ID_Hotel = HOT.ID_Hotel
     GROUP BY
         E.ID_Reservacion,
@@ -245,9 +245,9 @@ SELECT
         ELSE 0
     END AS Es_Pendiente
 
-FROM dbo.Reservacion R
+FROM Operaciones.Reservacion R
 
-INNER JOIN dbo.Huesped H
+INNER JOIN Operaciones.Huesped H
     ON R.ID_Huesped = H.ID_Huesped
 
 LEFT JOIN EstadiasReservacion ER
@@ -258,7 +258,7 @@ LEFT JOIN HotelReservacion HR
 GO
 
 -- Pag 4: Habitaciones y Ocupacion
-CREATE VIEW dbo.v_AnalisisHabitaciones
+CREATE VIEW BI.v_AnalisisHabitaciones
 AS
 
 -- Registros de ocupación
@@ -302,19 +302,19 @@ SELECT
         RH.Numero
     ) AS Clave_Habitacion
 
-FROM dbo.RegistroHabitaciones RH
+FROM Operaciones.RegistroHabitaciones RH
 
-INNER JOIN dbo.Habitacion HAB
+INNER JOIN Operaciones.Habitacion HAB
     ON RH.Numero = HAB.Numero
    AND RH.ID_Hotel = HAB.ID_Hotel
 
-INNER JOIN dbo.Hotel H
+INNER JOIN Operaciones.Hotel H
     ON RH.ID_Hotel = H.ID_Hotel
 
-INNER JOIN dbo.Estadia E
+INNER JOIN Operaciones.Estadia E
     ON RH.ID_Estadia = E.ID_Estadia
 
-INNER JOIN dbo.Reservacion R
+INNER JOIN Operaciones.Reservacion R
     ON E.ID_Reservacion = R.ID_Reservacion
 
 UNION ALL
@@ -355,14 +355,14 @@ SELECT
         HAB.Numero
     ) AS Clave_Habitacion
 
-FROM dbo.Habitacion HAB
+FROM Operaciones.Habitacion HAB
 
-INNER JOIN dbo.Hotel H
+INNER JOIN Operaciones.Hotel H
     ON HAB.ID_Hotel = H.ID_Hotel;
 GO
 
 -- Pag 5: Analisis de Servicios
-CREATE VIEW dbo.v_AnalisisServicios
+CREATE VIEW BI.v_AnalisisServicios
 AS
 WITH FacturacionServicio AS
 (
@@ -384,9 +384,9 @@ WITH FacturacionServicio AS
         MAX(F.Fecha_factura)
             AS Ultima_Fecha_Factura
 
-    FROM dbo.Detalle D
+    FROM Finanzas.Detalle D
 
-    INNER JOIN dbo.Factura F
+    INNER JOIN Finanzas.Factura F
         ON D.ID_Factura = F.ID_Factura
 
     WHERE D.ID_HistorialServicios IS NOT NULL
@@ -440,24 +440,24 @@ SELECT
     FS.Primera_Fecha_Factura,
     FS.Ultima_Fecha_Factura
 
-FROM dbo.HistorialServicios HS
+FROM Operaciones.HistorialServicios HS
 
-INNER JOIN dbo.Estadia E
+INNER JOIN Operaciones.Estadia E
     ON HS.ID_Estadia = E.ID_Estadia
 
-INNER JOIN dbo.Reservacion R
+INNER JOIN Operaciones.Reservacion R
     ON E.ID_Reservacion = R.ID_Reservacion
 
-INNER JOIN dbo.Huesped H
+INNER JOIN Operaciones.Huesped H
     ON R.ID_Huesped = H.ID_Huesped
 
-INNER JOIN dbo.Servicio S
+INNER JOIN Operaciones.Servicio S
     ON HS.ID_Servicio = S.ID_Servicio
 
-INNER JOIN dbo.Empleado EMP
+INNER JOIN Finanzas.Empleado EMP
     ON HS.ID_Empleado = EMP.ID_Empleado
 
-INNER JOIN dbo.Hotel HOT
+INNER JOIN Operaciones.Hotel HOT
     ON EMP.ID_Hotel = HOT.ID_Hotel
 
 LEFT JOIN FacturacionServicio FS
@@ -466,7 +466,7 @@ LEFT JOIN FacturacionServicio FS
 GO
 
 -- Pag 6: RRHH y Nomina
-CREATE VIEW dbo.v_AnalisisRecursosHumanos
+CREATE VIEW BI.v_AnalisisRecursosHumanos
 AS
 SELECT
     EMP.ID_Empleado,
@@ -500,15 +500,14 @@ SELECT
     PN.Metodo_Pago,
     PN.IVA
 
-FROM dbo.Empleado EMP
+FROM Finanzas.Empleado EMP
 
-INNER JOIN dbo.Hotel HOT
+INNER JOIN Operaciones.Hotel HOT
     ON EMP.ID_Hotel = HOT.ID_Hotel
 
-LEFT JOIN dbo.Empleado SUP
+LEFT JOIN Finanzas.Empleado SUP
     ON EMP.ID_Supervisor = SUP.ID_Empleado
 
-LEFT JOIN dbo.PagoNomina PN
+LEFT JOIN Finanzas.PagoNomina PN
     ON EMP.ID_Empleado = PN.ID_Empleado;
 GO
-

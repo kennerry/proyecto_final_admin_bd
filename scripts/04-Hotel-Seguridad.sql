@@ -25,13 +25,6 @@ ALTER SCHEMA Finanzas TRANSFER dbo.Empleado;
 ALTER SCHEMA Finanzas TRANSFER dbo.PagoNomina;
 ALTER SCHEMA Finanzas TRANSFER dbo.Factura;
 ALTER SCHEMA Finanzas TRANSFER dbo.Detalle;
-
-ALTER SCHEMA BI TRANSFER dbo.v_AnalisisResumenEjecutivo;
-ALTER SCHEMA BI TRANSFER dbo.v_AnalisisFinanciero;
-ALTER SCHEMA BI TRANSFER dbo.v_AnalisisReservaciones;
-ALTER SCHEMA BI TRANSFER dbo.v_AnalisisHabitaciones;
-ALTER SCHEMA BI TRANSFER dbo.v_AnalisisServicios;
-ALTER SCHEMA BI TRANSFER dbo.v_AnalisisRecursosHumanos;
 GO
 
 --Creación de Roles, Permisos y Usuarios
