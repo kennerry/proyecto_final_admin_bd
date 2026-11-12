@@ -1,11 +1,11 @@
 USE [msdb]
 GO
 
-/****** Objeto: Job [Backup_Log_15Minutos] Fecha de script: 09/11/2026 6:33:22 pm ******/
+/****** Objeto: Job [Backup_Log_45Minutos] Fecha de script: 12/11/2026 12:12:08 pm ******/
 BEGIN TRANSACTION
 DECLARE @ReturnCode INT
 SELECT @ReturnCode = 0
-/****** Objeto: JobCategory [[Uncategorized (Local)]] Fecha de script: 09/11/2026 6:33:22 pm ******/
+/****** Objeto: JobCategory [[Uncategorized (Local)]] Fecha de script: 12/11/2026 12:12:08 pm ******/
 IF NOT EXISTS (SELECT name FROM msdb.dbo.syscategories WHERE name=N'[Uncategorized (Local)]' AND category_class=1)
 BEGIN
 EXEC @ReturnCode = msdb.dbo.sp_add_category @class=N'JOB', @type=N'LOCAL', @name=N'[Uncategorized (Local)]'
@@ -14,7 +14,7 @@ IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
 END
 
 DECLARE @jobId BINARY(16)
-EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'Backup_Log_15Minutos', 
+EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'Backup_Log_45Minutos', 
 		@enabled=1, 
 		@notify_level_eventlog=0, 
 		@notify_level_email=2, 
@@ -26,7 +26,7 @@ EXEC @ReturnCode =  msdb.dbo.sp_add_job @job_name=N'Backup_Log_15Minutos',
 		@owner_login_name=N'sa', 
 		@notify_email_operator_name=N'Operador de backup', @job_id = @jobId OUTPUT
 IF (@@ERROR <> 0 OR @ReturnCode <> 0) GOTO QuitWithRollback
-/****** Objeto: Step [Ejecutar Backup Log] Fecha de script: 09/11/2026 6:33:22 pm ******/
+/****** Objeto: Step [Ejecutar Backup Log] Fecha de script: 12/11/2026 12:12:08 pm ******/
 EXEC @ReturnCode = msdb.dbo.sp_add_jobstep @job_id=@jobId, @step_name=N'Ejecutar Backup Log', 
 		@step_id=1, 
 		@cmdexec_success_code=0, 
@@ -61,7 +61,7 @@ EXEC @ReturnCode = msdb.dbo.sp_add_jobschedule @job_id=@jobId, @name=N'Sched_Bac
 		@freq_type=4, 
 		@freq_interval=1, 
 		@freq_subday_type=4, 
-		@freq_subday_interval=15, 
+		@freq_subday_interval=45, 
 		@freq_relative_interval=0, 
 		@freq_recurrence_factor=0, 
 		@active_start_date=20261108, 
