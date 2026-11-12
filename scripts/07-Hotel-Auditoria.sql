@@ -1,42 +1,49 @@
 -- Creacion y configuracion de auditoria
 -- Crear server de auditoria en master y configurar ruta donde guardar el archivo
 
-Use master;
+USE master;
 GO
 
 CREATE SERVER AUDIT AuditoriaProyectoHotel
 TO FILE (
     FILEPATH = '/var/opt/mssql/log/') -- Cambiar ruta si se usa Windows y aplicar permisos
-WITH (ON_FAILURE = CONTINUE); --Cuando haya un error lo ignora y continua
+WITH (ON_FAILURE = CONTINUE); -- Cuando haya un error lo ignora y continua
 GO
 
 -- Encendemos auditoria
-
 ALTER SERVER AUDIT AuditoriaProyectoHotel WITH (STATE = ON);
 GO
 
 -- Creamos especificaciones de auditoria de Hotel. (Vive dentro del .bak)
-
 USE Hotel;
 GO
 
+-- Apagamos y borramos especificacion vieja (si es que existia)
+IF EXISTS (SELECT * FROM sys.database_audit_specifications WHERE name = 'EspecificacionAuditoriaHotel')
+BEGIN
+    ALTER DATABASE AUDIT SPECIFICATION EspecificacionAuditoriaHotel WITH (STATE = OFF);
+    DROP DATABASE AUDIT SPECIFICATION EspecificacionAuditoriaHotel;
+END
+GO
+
+-- Creamos la nueva especificación apuntando a los nuevos esquemas 
 CREATE DATABASE AUDIT SPECIFICATION EspecificacionAuditoriaHotel
 FOR SERVER AUDIT AuditoriaProyectoHotel
-ADD (SELECT, INSERT, UPDATE, DELETE ON SCHEMA::dbo BY public)
-WITH (STATE = ON); --Encendemos la auditoria
+ADD (SELECT, INSERT, UPDATE, DELETE ON SCHEMA::Operaciones BY public),
+ADD (SELECT, INSERT, UPDATE, DELETE ON SCHEMA::Finanzas BY public)
+WITH (STATE = ON);
 GO
 
 -- Verificacion de funcionamiento de la auditoria
--- Hacemos un select que quedara registrado
-
 USE Hotel;
 GO
 
-SELECT TOP 5 * FROM dbo.Empleado;
+-- Hacemos un select de prueba que quedará registrado
+SELECT TOP 5 * FROM Finanzas.Empleado;
+SELECT TOP 5 * FROM Operaciones.Huesped;
 GO
 
---Verificamos que el select fue registrado exitosamente en la auditoria
-
+-- Verificamos que el select fue registrado exitosamente en la auditoria
 USE master;
 GO
 
