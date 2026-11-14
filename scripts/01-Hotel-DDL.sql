@@ -75,8 +75,10 @@ CREATE TABLE Reservacion (
     --* Llave primaria de Reservacion
     CONSTRAINT pk_Reservacion_IDReservacion PRIMARY KEY (ID_Reservacion),
     --* Llave foranea de Reservacion -> Huesped (ID)
+    --* NO ACTION + trigger INSTEAD OF DELETE en Huesped (cascada de borrado emulada)
+    --* (se corta aqui la cadena de cascada para evitar el error 1785 hacia Detalle)
     CONSTRAINT fk_Reservacion_IDHuesped FOREIGN KEY (ID_Huesped) REFERENCES Huesped (ID_Huesped)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
     --* Verificar campos
     CONSTRAINT ck_Reservacion_Estado CHECK (Estado IN ('CANCELADA', 'PENDIENTE', 'COMPLETADA')),
     CONSTRAINT ck_Reservacion_Fechas CHECK (Fecha_Fin >= Fecha_Inicio),
@@ -94,8 +96,9 @@ CREATE TABLE Estadia (
     --* Llave primaria de Estadia
     CONSTRAINT pk_Estadia_IDEstadia PRIMARY KEY (ID_Estadia),
     --* Llave foranea de Estadia -> Reservacion (ID)
+    --* NO ACTION + trigger INSTEAD OF DELETE en Reservacion (cascada de borrado emulada)
     CONSTRAINT fk_Estadia_IDReservacion FOREIGN KEY (ID_Reservacion) REFERENCES Reservacion (ID_Reservacion)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
     --* Verificar campos
     CONSTRAINT ck_Estadia_Fechas CHECK (Fecha_Salida >= Fecha_Entrada),
     CONSTRAINT ck_Estadia_HoraEntrada_HHMM CHECK (DATEPART(SECOND, Hora_Entrada) = 0),
@@ -112,7 +115,7 @@ CREATE TABLE Factura (
     CONSTRAINT pk_Factura_IDFactura PRIMARY KEY (ID_Factura),
     --* Llave foranea de Factura -> Estadia (ID)
     CONSTRAINT fk_Factura_IDEstadia FOREIGN KEY (ID_Estadia) REFERENCES Estadia (ID_Estadia)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Verificar campos
     CONSTRAINT ck_Factura_PrecioTotal CHECK (Precio_total > 0)
 );
@@ -132,7 +135,7 @@ CREATE TABLE Habitacion (
     CONSTRAINT pk_Habitacion_Numero_IDHotel PRIMARY KEY (Numero, ID_Hotel),
     --* Llave foranea Habitacion -> Hotel (ID)
     CONSTRAINT fk_Habitacion_IDHotel FOREIGN KEY (ID_Hotel) REFERENCES Hotel (ID_Hotel)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Verificar campos
     CONSTRAINT ck_Habitacion_Tipo CHECK (Tipo IN ('INDIVIDUAL', 'DOBLE', 'FAMILIAR', 'SUITE')),
     CONSTRAINT ck_Habitacion_Tamaño CHECK (Tamaño > 0),
@@ -157,10 +160,12 @@ CREATE TABLE Empleado (
     --* Llave primaria del empleado
     CONSTRAINT pk_Empleado_IDEmpleado PRIMARY KEY (ID_Empleado),
     --* Llave foranea del ID_Hotel de la tabla Hotel
+    --* NO ACTION + trigger INSTEAD OF DELETE en Hotel (cascada de borrado emulada)
     CONSTRAINT fk_Empleado_IDHotel FOREIGN KEY (ID_Hotel) REFERENCES Hotel (ID_Hotel)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
     --* Llave foranea ID_Supervisor de la misma tabla Empleado
     --* (SQL Server no permite CASCADE en una FK autorreferenciada)
+    --* El borrado en cascada de subordinados se emula con trigger INSTEAD OF DELETE en Empleado
     CONSTRAINT fk_Empleado_IDSupervisor FOREIGN KEY (ID_Supervisor) REFERENCES Empleado (ID_Empleado)
         ON DELETE NO ACTION ON UPDATE NO ACTION,
     --* Restriccion a correos unicos
@@ -197,7 +202,7 @@ CREATE TABLE PagoNomina (
     CONSTRAINT pk_PagoNomina_IDSalario_IDEmpleado PRIMARY KEY (ID_Salario, ID_Empleado),
     --* Llave foranea de ID_Empleado de la tabla Empleado
     CONSTRAINT fk_PagoNomina_IDEmpleado FOREIGN KEY (ID_Empleado) REFERENCES Empleado (ID_Empleado)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Check para limitar la cantidad de opciones en Metodo_Pago
     CONSTRAINT ck_PagoNomina_MetodoPago CHECK (Metodo_Pago IN ('CHEQUE', 'TRANSFERENCIA')),
     CONSTRAINT ck_PagoNomina_Monto CHECK (Monto > 0),
@@ -214,14 +219,15 @@ CREATE TABLE HistorialServicios (
     --* Llave primaria de HistorialServicios
     CONSTRAINT pk_HistorialServicio_IDHistorialServicio PRIMARY KEY (ID_HistorialServicios),
     --* Llave foranea HistorialServicios -> Estadia (ID)
+    --* NO ACTION + trigger INSTEAD OF DELETE en Estadia (evita multiples rutas de cascada hacia Detalle)
     CONSTRAINT fk_HistorialServicio_IDEstadia FOREIGN KEY (ID_Estadia) REFERENCES Estadia (ID_Estadia)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
     --* Llave foranea HistorialServicios -> Servicio (ID)
     CONSTRAINT fk_HistorialServicio_IDServicio FOREIGN KEY (ID_Servicio) REFERENCES Servicio (ID_Servicio)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Llave foranea HistorialServicios -> Empleado (ID)
     CONSTRAINT fk_HistorialServicio_IDEmpleado FOREIGN KEY (ID_Empleado) REFERENCES Empleado (ID_Empleado)
-        ON DELETE NO ACTION ON UPDATE CASCADE
+        ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE RegistroHabitaciones (
@@ -234,11 +240,12 @@ CREATE TABLE RegistroHabitaciones (
     --* Llave primaria de RegistroHabitaciones
     CONSTRAINT pk_RegistroHabitaciones_IDRegistro PRIMARY KEY (ID_Registro),
     --* Llave foranea de RegistroHabitaciones -> Estadia (ID)
+    --* NO ACTION + trigger INSTEAD OF DELETE en Estadia (evita multiples rutas de cascada hacia Detalle)
     CONSTRAINT fk_RegistroHabitacion_IDEstadia FOREIGN KEY (ID_Estadia) REFERENCES Estadia (ID_Estadia)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE NO ACTION ON UPDATE NO ACTION,
     --* Llave foranea de RegistroHabitaciones -> Habitacion (Numero, ID_Hotel)
     CONSTRAINT fk_RegistroHabitacion_IDHotel_Numero FOREIGN KEY (Numero, ID_Hotel) REFERENCES Habitacion (Numero, ID_Hotel)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Campos unicos
     CONSTRAINT uq_RegistroHabitacion_Estadia_Habitacion UNIQUE (ID_Estadia, Numero, ID_Hotel),
     --* Verificar campos
@@ -259,15 +266,13 @@ CREATE TABLE Detalle (
     CONSTRAINT pk_Detalle_IDDetalle_IDFactura PRIMARY KEY (ID_Detalle, ID_Factura),
     --* Llave foranea de Detalle -> Factura (ID)
     CONSTRAINT fk_Detalle_IDFactura FOREIGN KEY (ID_Factura) REFERENCES Factura (ID_Factura)
-        ON DELETE NO ACTION ON UPDATE CASCADE,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Llave foranea de Detalle -> HistorialServicios (ID)
-    --* NO ACTION: con CASCADE SQL Server da error 1785 (multiples rutas de cascada)
     CONSTRAINT fk_Detalle_HistorialServicios FOREIGN KEY (ID_HistorialServicios) REFERENCES HistorialServicios (ID_HistorialServicios)
-        ON DELETE NO ACTION ON UPDATE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Llave foranea de Detalle -> RegistroHabitaciones (ID)
-    --* NO ACTION: mismo motivo que la anterior
     CONSTRAINT fk_Detalle_IDRegistro FOREIGN KEY (ID_Registro) REFERENCES RegistroHabitaciones (ID_Registro)
-        ON DELETE NO ACTION ON UPDATE NO ACTION,
+        ON DELETE CASCADE ON UPDATE CASCADE,
     --* Verificar campos
     CONSTRAINT ck_Detalle_PrecioUnitario CHECK (Precio_Unitario > 0),
     CONSTRAINT ck_Detalle_Cantidad CHECK (Cantidad >= 0),
@@ -277,3 +282,113 @@ CREATE TABLE Detalle (
         (ID_HistorialServicios IS NULL AND ID_Registro IS NOT NULL)
     )
 );
+GO
+
+/* ============================================================================
+   TRIGGERS DE BORRADO EN CASCADA (INSTEAD OF DELETE)
+   SQL Server no permite ON DELETE CASCADE en todas las FK (error 1785: multiples
+   rutas de cascada, y las FK autorreferenciadas no admiten CASCADE). Estas FK
+   quedaron en NO ACTION y los triggers borran los hijos antes que el padre,
+   con el mismo resultado que un ON DELETE CASCADE de Postgres.
+   Cada trigger borra el padre con un DELETE sobre su propia tabla: SQL Server no
+   vuelve a disparar un INSTEAD OF trigger sobre la misma tabla dentro de si mismo.
+   ============================================================================ */
+
+--* Huesped -> borra sus Reservaciones (que a su vez borran Estadias, etc.)
+CREATE TRIGGER trg_Huesped_InsteadOfDelete
+ON Huesped
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM Reservacion
+    WHERE ID_Huesped IN (SELECT ID_Huesped FROM deleted);
+
+    DELETE FROM Huesped
+    WHERE ID_Huesped IN (SELECT ID_Huesped FROM deleted);
+END;
+GO
+
+--* Reservacion -> borra sus Estadias
+CREATE TRIGGER trg_Reservacion_InsteadOfDelete
+ON Reservacion
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM Estadia
+    WHERE ID_Reservacion IN (SELECT ID_Reservacion FROM deleted);
+
+    DELETE FROM Reservacion
+    WHERE ID_Reservacion IN (SELECT ID_Reservacion FROM deleted);
+END;
+GO
+
+--* Estadia -> borra HistorialServicios y RegistroHabitaciones (cascada hacia Detalle)
+--* y luego la Estadia (cascada nativa hacia Factura -> Detalle)
+CREATE TRIGGER trg_Estadia_InsteadOfDelete
+ON Estadia
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM HistorialServicios
+    WHERE ID_Estadia IN (SELECT ID_Estadia FROM deleted);
+
+    DELETE FROM RegistroHabitaciones
+    WHERE ID_Estadia IN (SELECT ID_Estadia FROM deleted);
+
+    DELETE FROM Estadia
+    WHERE ID_Estadia IN (SELECT ID_Estadia FROM deleted);
+END;
+GO
+
+--* Hotel -> borra sus Empleados (con el trigger de Empleado) y luego el Hotel
+--* (cascada nativa hacia Habitacion -> RegistroHabitaciones -> Detalle)
+CREATE TRIGGER trg_Hotel_InsteadOfDelete
+ON Hotel
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM Empleado
+    WHERE ID_Hotel IN (SELECT ID_Hotel FROM deleted);
+
+    DELETE FROM Hotel
+    WHERE ID_Hotel IN (SELECT ID_Hotel FROM deleted);
+END;
+GO
+
+--* Empleado -> borra tambien a todos sus subordinados (directos e indirectos),
+--* porque la FK autorreferenciada ID_Supervisor no admite CASCADE.
+--* PagoNomina y HistorialServicios se borran por cascada nativa.
+CREATE TRIGGER trg_Empleado_InsteadOfDelete
+ON Empleado
+INSTEAD OF DELETE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @Borrar TABLE (ID_Empleado INT PRIMARY KEY);
+
+    ;WITH Arbol AS (
+        SELECT ID_Empleado
+        FROM deleted
+        UNION ALL
+        SELECT e.ID_Empleado
+        FROM Empleado e
+        INNER JOIN Arbol a ON e.ID_Supervisor = a.ID_Empleado
+    )
+    INSERT INTO @Borrar (ID_Empleado)
+    SELECT DISTINCT ID_Empleado FROM Arbol;
+
+    --* Un solo DELETE: la verificacion de la FK se hace al terminar la sentencia,
+    --* cuando jefes y subordinados ya fueron eliminados juntos.
+    DELETE FROM Empleado
+    WHERE ID_Empleado IN (SELECT ID_Empleado FROM @Borrar);
+END;
+GO

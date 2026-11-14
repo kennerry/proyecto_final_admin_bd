@@ -32,6 +32,8 @@ CREATE ROLE Rol_Recepcionista;
 CREATE ROLE Rol_Contador;
 CREATE ROLE Rol_AdministradorHotel;
 CREATE ROLE Rol_AnalistaBI;
+CREATE ROLE Rol_Auditor;
+
 GO
 
 GRANT SELECT, INSERT, UPDATE ON SCHEMA::Operaciones TO Rol_Recepcionista;
@@ -44,8 +46,23 @@ GRANT SELECT ON SCHEMA::Operaciones TO Rol_Contador;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::Operaciones TO Rol_AdministradorHotel;
 GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::Finanzas TO Rol_AdministradorHotel;
+GRANT SELECT, INSERT, UPDATE, DELETE, EXEC ON SCHEMA::Auditoria TO Rol_AdministradorHotel;
+GRANT SELECT, INSERT, UPDATE, DELETE ON SCHEMA::BI TO Rol_AdministradorHotel;
 
 GRANT SELECT ON SCHEMA::BI TO Rol_AnalistaBI;
+GO
+
+GRANT SELECT, INSERT, UPDATE, DELETE, EXEC ON SCHEMA::Auditoria TO Rol_Auditor;
+GO
+
+------------------------------------------------
+USE master;
+GO
+GRANT VIEW SERVER SECURITY AUDIT TO usr_auditor;
+GO
+------------------------------------------------
+
+USE Hotel;
 GO
 
 CREATE LOGIN usr_recepcion WITH PASSWORD = 'PasswordSeguro123!';
@@ -63,4 +80,9 @@ ALTER ROLE Rol_AdministradorHotel ADD MEMBER usr_gerente;
 CREATE LOGIN usr_analistaBI WITH PASSWORD = 'PasswordSeguro123!';
 CREATE USER usr_analistaBI FOR LOGIN usr_analistaBI;
 ALTER ROLE Rol_AnalistaBI ADD MEMBER usr_analistaBI;
+
+CREATE LOGIN usr_auditor WITH PASSWORD = 'PasswordSeguro123!';
+CREATE USER usr_auditor FOR LOGIN usr_auditor;
+ALTER ROLE Rol_Auditor ADD MEMBER usr_auditor;
+
 GO
