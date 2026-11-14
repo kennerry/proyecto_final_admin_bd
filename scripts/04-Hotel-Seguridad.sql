@@ -55,16 +55,6 @@ GO
 GRANT SELECT, INSERT, UPDATE, DELETE, EXEC ON SCHEMA::Auditoria TO Rol_Auditor;
 GO
 
-------------------------------------------------
-USE master;
-GO
-GRANT VIEW SERVER SECURITY AUDIT TO usr_auditor;
-GO
-------------------------------------------------
-
-USE Hotel;
-GO
-
 CREATE LOGIN usr_recepcion WITH PASSWORD = 'PasswordSeguro123!';
 CREATE USER usr_recepcion FOR LOGIN usr_recepcion;
 ALTER ROLE Rol_Recepcionista ADD MEMBER usr_recepcion;
@@ -86,3 +76,10 @@ CREATE USER usr_auditor FOR LOGIN usr_auditor;
 ALTER ROLE Rol_Auditor ADD MEMBER usr_auditor;
 
 GO
+
+------------------------------------------------
+USE master;
+GO
+GRANT VIEW SERVER SECURITY AUDIT TO usr_auditor;
+GO
+------------------------------------------------
