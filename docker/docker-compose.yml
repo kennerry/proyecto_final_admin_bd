@@ -1,0 +1,47 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: sqlserver-2025
+    hostname: sqlserver
+
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Admin123!"
+      MSSQL_PID: "Developer"
+      MSSQL_AGENT_ENABLED: "true"
+
+      # Perfil que utilizará SQL Server Agent
+      MSSQL_AGENT_EMAIL_PROFILE: "DB Admin prueba"
+
+    ports:
+      - "1434:1433"
+
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+      - sqlserver_backup:/backup
+      - ./shared/audit:/audit
+      - ./shared/csv:/csv
+
+    depends_on:
+      - mailpit
+
+    restart: unless-stopped
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    hostname: mailpit
+
+    ports:
+      # Interfaz web visible desde Windows
+      - "8025:8025"
+
+    expose:
+      # SMTP disponible únicamente para los contenedores
+      - "1025"
+
+    restart: unless-stopped
+
+volumes:
+  sqlserver_data:
+  sqlserver_backup:
